@@ -1,0 +1,21 @@
+name: 'Gimme AWS Creds'
+description: 'Get creds from vault for Unqorks AWS account'
+runs:
+  using: "composite"
+  steps:
+    - name: Get access key from vault
+      uses: hashicorp/vault-action@v2.4.0
+      with:
+        url: https://vault.tools.unqork.io
+        token: ${{ secrets.VAULT_TOKEN }}
+        id: secrets
+        secrets: |
+          aws/creds/unq-eng-artifacts-developer access_key | AWS_ACCESS_KEY_ID ;
+          aws/creds/unq-eng-artifacts-developer secret_key | AWS_SECRET_ACCESS_KEY ;
+          aws/creds/unq-eng-artifacts-developer security_token | AWS_SESSION_TOKEN
+    - name: Gimme AWS Creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ steps.secrets.output.access_key }}
+        aws-secret-access-key: ${{ steps.secrets.output.secret_key }}
+        aws-region: us-east-2
